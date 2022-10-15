@@ -15,21 +15,13 @@ This is my first project with the Victron Venus OS on GitHub, so I took some ide
 - https://github.com/victronenergy/venus/wiki/dbus#grid-and-genset-meter
 
 
-
------------------------------------- Update below needed ----------------------------------------------------
-
 ## How it works
 ### My setup
-- 3-Phase installation
-- Shelly 1PM with latest firmware (20220209-094317/v1.11.8-g8c7bb8d)
-  - Measuring AC output of SUN-2000 GTIL on phase L3
-  - Connected to Wifi netowrk "A" with a known IP  
-- Shelly 1PM with latest firmware (20220209-094317/v1.11.8-g8c7bb8d)
-  - Measuring AC output of Envertech EVT-500 and Hoymiles HM-800 on phase L3
-  - Connected to Wifi netowrk "A" with a known IP  
-- Shelly 3EM used as a grid meter
-  - Connected over https://github.com/fabian-lauer/dbus-shelly-3em-smartmeter
-  - Connected to Wifi netowrk "A" with a known IP  
+- 1-Phase installation
+- Shelly EM with latest firmware
+  - Power Input 1 (CT) Measuring Grid input to house
+  - Power Input 2 (CT) Measuring PV Generation
+  - Connected to Wifi netowrk "A" with a known IP 
 - Venus OS on Raspberry PI 4 4GB version 1.1 - Firmware v2.84
   - No other devices from Victron connected
   - Connected to Wifi netowrk "A"
@@ -56,7 +48,7 @@ Thats it 😄
 
 ## Install & Configuration
 ### Get the code
-Just grap a copy of the main branche and copy them to a folder under `/data/` e.g. `/data/dbus-shelly-1pm-pvinverter`.
+Just grap a copy of the main branche and copy them to a folder under `/data/` e.g. `/data/dbus-shelly-em-pvinverter`.
 After that call the install.sh script.
 
 The following script should do everything for you:
