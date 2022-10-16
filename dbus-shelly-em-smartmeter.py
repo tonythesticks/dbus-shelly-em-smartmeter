@@ -137,20 +137,21 @@ class DbusShellyemService:
        #get data from Shelly em
        meter_data = self._getShellyData()
            
-       #send data to DBus
+              #send data to DBus
        self._dbusservice['/Ac/L1/Voltage'] = meter_data['emeters'][0]['voltage']            #[1] for pv
        current = meter_data['emeters'][0]['power'] / meter_data['emeters'][0]['voltage']    #[1] for pv
        self._dbusservice['/Ac/L1/Current'] = current
-       
+       self._dbusservice['/Ac/Current'] = current
        self._dbusservice['/Ac/L1/Power'] = meter_data['emeters'][0]['power']                #[1] for pv
+       self._dbusservice['/Ac/Power'] = self._dbusservice['/Ac/L1/Power']
        self._dbusservice['/Ac/L1/Energy/Forward'] = (meter_data['emeters'][0]['total']/1000)#[1] for pv
-       self._dbusservice['/Ac/L1/Energy/Reverse'] = (meter_data['emeters'][0]['total_returned']/1000)  #[1] for pv  
-        
+       self._dbusservice['/Ac/L1/Energy/Reverse'] = (meter_data['emeters'][0]['total_returned']/1000)  #[1] for pv
+
        #self._dbusservice['/Ac/Power'] = meter_data['total_power'] # positive: consumption, negative: feed into grid
 
        self._dbusservice['/Ac/Energy/Forward'] = self._dbusservice['/Ac/L1/Energy/Forward']
-       self._dbusservice['/Ac/Energy/Reverse'] = self._dbusservice['/Ac/L1/Energy/Reverse'] 
-          
+       self._dbusservice['/Ac/Energy/Reverse'] = self._dbusservice['/Ac/L1/Energy/Reverse']
+         
        #logging
        logging.debug("House Consumption (/Ac/Power): %s" % (self._dbusservice['/Ac/Power']))
        logging.debug("House Forward (/Ac/Energy/Forward): %s" % (self._dbusservice['/Ac/Energy/Forward']))
