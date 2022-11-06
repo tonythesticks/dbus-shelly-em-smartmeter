@@ -92,11 +92,6 @@ class DbusShellyemService:
 
     return int(value)
 
-  def _getServiceConfig(self):
-        config = self._getConfig()
-        GridOrpV = config['DEFAULT']['GridOrPV']
-        return GridOrPV
-  
   def _getMeterNoConfig(self):
         config = self._getconfig()
         MeterNo = config['DEFAULT']['GridOrPV']
@@ -167,10 +162,10 @@ class DbusShellyemService:
        self._dbusservice['/Ac/Energy/Reverse'] = self._dbusservice['/Ac/L1/Energy/Reverse']
 
        #logging
-       #logging.debug("House Consumption (/Ac/Power): %s" % (self._dbusservice['/Ac/Power']))
-       #logging.debug("House Forward (/Ac/Energy/Forward): %s" % (self._dbusservice['/Ac/Energy/Forward']))
-       #logging.debug("House Reverse (/Ac/Energy/Revers): %s" % (self._dbusservice['/Ac/Energy/Reverse']))
-       #logging.debug("---");
+       logging.debug("House Consumption (/Ac/Power): %s" % (self._dbusservice['/Ac/Power']))
+       logging.debug("House Forward (/Ac/Energy/Forward): %s" % (self._dbusservice['/Ac/Energy/Forward']))
+       logging.debug("House Reverse (/Ac/Energy/Revers): %s" % (self._dbusservice['/Ac/Energy/Reverse']))
+       logging.debug("---");
 
        # increment UpdateIndex - to show that new data is available
        index = self._dbusservice['/UpdateIndex'] + 1  # increment index
@@ -190,7 +185,11 @@ class DbusShellyemService:
     logging.debug("someone else updated %s to %s" % (path, value))
     return True # accept the change
 
-
+def getServiceConfig():
+    config = self._getConfig()
+    GridOrpV = config['DEFAULT']['GridOrPV']
+    return GridOrPV
+  
 
 def main():
   #configure logging
@@ -216,8 +215,9 @@ def main():
       _v = lambda p, v: (str(round(v, 1)) + 'V')
 
       #start our main-service
+      GridOrPV = getServiceConfig()
       pvac_output = DbusShellyemService(
-        servicename='com.victronenergy.grid, #grid or pvinverter
+        servicename='com.victronenergy.' + GridOrPV #grid', #grid or pvinverter
         paths={
           '/Ac/Energy/Forward': {'initial': None, 'textformat': _kwh}, # energy bought from the grid
           '/Ac/Energy/Reverse': {'initial': None, 'textformat': _kwh}, # energy sold to the grid
