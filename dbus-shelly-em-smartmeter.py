@@ -216,9 +216,8 @@ def main():
       _v = lambda p, v: (str(round(v, 1)) + 'V')
 
       #start our main-service
-      GridOrPV = getServiceConfig()
       pvac_output = DbusShellyemService(
-        servicename='com.victronenergy.' + GridOrPV', #grid or pvinverter
+        servicename='com.victronenergy.grid, #grid or pvinverter
         paths={
           '/Ac/Energy/Forward': {'initial': None, 'textformat': _kwh}, # energy bought from the grid
           '/Ac/Energy/Reverse': {'initial': None, 'textformat': _kwh}, # energy sold to the grid
