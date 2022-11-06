@@ -34,15 +34,12 @@ class DbusShellyemService:
     self._dbusservice.add_path('/Mgmt/ProcessName', __file__)
     self._dbusservice.add_path('/Mgmt/ProcessVersion', 'Unkown version, and running on Python ' + platform.python_version())
     self._dbusservice.add_path('/Mgmt/Connection', connection)
-
     # Create the mandatory objects
     self._dbusservice.add_path('/DeviceInstance', deviceinstance)
     #self._dbusservice.add_path('/ProductId', 16) # value used in ac_sensor_bridge.cpp of dbus-cgwacs
     #self._dbusservice.add_path('/ProductId', 0xFFFF) # id assigned by Victron Support from SDM630v2.py
-    #self._dbusservice.add_path('/ProductId', 45069) # found on https://www.sascha-curth.de/projekte/005_Color_Control_GX.html#experiment - should be an ET340 Engerie Meter
-    self._dbusservice.add_path('/ProductId', 0xB023) # id needs to be assigned by Victron Support current value for testing
-    self._dbusservice.add_path('/DeviceType', 345) # found on https://www.sascha-curth.de/projekte/005_Color_Control_GX.html#experiment - should be an ET340 Engerie Meter
-    self._dbusservice.add_path('/ProductName', productname)
+    #self._dbusservice.add_path('/ProductId', 45069) # found on https://www.sascha-curth.de/projekte/005_Color_Control_GX.html#experiment - should be an ET340 Engerie >    self._dbusservice.add_path('/ProductId', 0xB023) # id needs to be assigned by Victron Support current value for testing
+    self._dbusservice.add_path('/DeviceType', 345) # found on https://www.sascha-curth.de/projekte/005_Color_Control_GX.html#experiment - should be an ET340 Engerie Me>    self._dbusservice.add_path('/ProductName', productname)
     self._dbusservice.add_path('/CustomName', customname)
     self._dbusservice.add_path('/Latency', None)
     self._dbusservice.add_path('/FirmwareVersion', 0.1)
@@ -76,7 +73,6 @@ class DbusShellyemService:
     serial = meter_data['mac']
     return serial
 
-
   def _getConfig(self):
     config = configparser.ConfigParser()
     config.read("%s/config.ini" % (os.path.dirname(os.path.realpath(__file__))))
@@ -92,16 +88,11 @@ class DbusShellyemService:
 
     return int(value)
 
-  def _getServiceConfig(self):
-        config = self._getConfig()
-        GridOrpV = config['DEFAULT']['GridOrPV']
-        return GridOrPV
-  
   def _getMeterNoConfig(self):
         config = self._getconfig()
-        MeterNo = config['DEFAULT']['GridOrPV']
+        MeterNo = int(config['DEFAULT']['MeterNo'])
         return MeterNo
-    
+
   def _getShellyStatusUrl(self):
     config = self._getConfig()
     accessType = config['DEFAULT']['AccessType']
@@ -123,7 +114,7 @@ class DbusShellyemService:
     if not meter_r:
         raise ConnectionError("No response from Shelly EM - %s" % (URL))
 
-    meter_data = meter_r.json()
+     meter_data = meter_r.json()
 
     # check for Json
     if not meter_data:
@@ -144,13 +135,13 @@ class DbusShellyemService:
     try:
        #get data from Shelly em
        meter_data = self._getShellyData()
-        
+
        config = self._getConfig()
-       MeterNo = config['DEFAULT']['MeterNo']
-       
+       MeterNo = int(config['DEFAULT']['MeterNo'])
+
        #send data to DBus
        self._dbusservice['/Ac/L1/Voltage'] = meter_data['emeters'][MeterNo]['voltage']
-       current = meter_data['emeters'][0]['power'] / meter_data['emeters'][MeterNo]['voltage']
+       current = meter_data['emeters'][MeterNo]['power'] / meter_data['emeters'][MeterNo]['voltage']
        self._dbusservice['/Ac/L1/Current'] = current
        self._dbusservice['/Ac/Current'] = current
        self._dbusservice['/Ac/L1/Power'] = meter_data['emeters'][MeterNo]['power']
@@ -183,13 +174,17 @@ class DbusShellyemService:
     except Exception as e:
        logging.critical('Error at %s', '_update', exc_info=e)
 
-    # return true, otherwise add_timeout will be removed from GObject - see docs http://library.isr.ist.utl.pt/docs/pygtk2reference/gobject-functions.html#function-gobject--timeout-add
-    return True
+    # return true, otherwise add_timeout will be removed from GObject - see docs http://library.isr.ist.utl.pt/docs/pygtk2reference/gobject-functions.html#function-gob>    return True
 
   def _handlechangedvalue(self, path, value):
     logging.debug("someone else updated %s to %s" % (path, value))
     return True # accept the change
 
+def getServiceConfig():
+   config = configparser.ConfigParser()
+   config.read("%s/config.ini" % (os.path.dirname(os.path.realpath(__file__))))
+   GridOrPV = config['DEFAULT']['GridOrPV']
+   return GridOrPV
 
 
 def main():
@@ -216,8 +211,9 @@ def main():
       _v = lambda p, v: (str(round(v, 1)) + 'V')
 
       #start our main-service
+      GridOrPV=getServiceConfig()
       pvac_output = DbusShellyemService(
-        servicename='com.victronenergy.grid, #grid or pvinverter
+        servicename='com.victronenergy.' + GridOrPV, #pvinverter', #grid or pvinverter
         paths={
           '/Ac/Energy/Forward': {'initial': None, 'textformat': _kwh}, # energy bought from the grid
           '/Ac/Energy/Reverse': {'initial': None, 'textformat': _kwh}, # energy sold to the grid
