@@ -25,7 +25,6 @@ class DbusShellyemService:
     config = self._getConfig()
     deviceinstance = int(config['DEFAULT']['Deviceinstance'])
     customname = config['DEFAULT']['CustomName']
-    MeterNo = config['DEFAULT']['MeterNo']
     self._dbusservice = VeDbusService("{}.http_{:02d}".format(servicename, deviceinstance))
     self._paths = paths
 
@@ -136,7 +135,10 @@ class DbusShellyemService:
     try:
        #get data from Shelly em
        meter_data = self._getShellyData()
-
+        
+       config = self._getConfig()
+       MeterNo = config['DEFAULT']['MeterNo']
+       
        #send data to DBus
        self._dbusservice['/Ac/L1/Voltage'] = meter_data['emeters'][MeterNo]['voltage']
        current = meter_data['emeters'][0]['power'] / meter_data['emeters'][MeterNo]['voltage']
