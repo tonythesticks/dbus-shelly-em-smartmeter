@@ -92,7 +92,16 @@ class DbusShellyemService:
 
     return int(value)
 
-
+  def _getServiceConfig(self):
+        config = self._getConfig()
+        GridOrpV = config['DEFAULT']['GridOrPV']
+        return GridOrPV
+  
+  def _getMeterNoConfig(self):
+        config = self._getconfig()
+        MeterNo = config['DEFAULT']['GridOrPV']
+        return MeterNo
+    
   def _getShellyStatusUrl(self):
     config = self._getConfig()
     accessType = config['DEFAULT']['AccessType']
@@ -207,8 +216,9 @@ def main():
       _v = lambda p, v: (str(round(v, 1)) + 'V')
 
       #start our main-service
+      GridOrPV = getServiceConfig()
       pvac_output = DbusShellyemService(
-        servicename='com.victronenergy.grid', #grid or pvinverter
+        servicename='com.victronenergy.' + GridOrPV', #grid or pvinverter
         paths={
           '/Ac/Energy/Forward': {'initial': None, 'textformat': _kwh}, # energy bought from the grid
           '/Ac/Energy/Reverse': {'initial': None, 'textformat': _kwh}, # energy sold to the grid
