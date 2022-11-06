@@ -1,5 +1,5 @@
 # dbus-shelly-em-smartmeter
-Integrate Shelly EM into Victron Energies Venus OS
+Integrate Shelly EM into Victron Energies Venus OS.
 
 ## Purpose
 With the scripts in this repo it should be easy possible to install, uninstall, restart a service that connects the Shelly EM to the VenusOS and GX devices from Victron.
@@ -19,8 +19,8 @@ This is my first project with the Victron Venus OS on GitHub, so I took some ide
 ### My setup
 - 1-Phase installation
 - Shelly EM with latest firmware
-  - Power Input 1 (CT) Measuring Grid input to house
-  - Power Input 2 (CT) Measuring PV Generation
+  - Power Input 0 (CT) Measuring Grid input to house
+  - Power Input 1 (CT) Measuring PV Generation
   - Connected to Wifi netowrk "A" with a known IP 
 - Venus OS on Raspberry PI 4 4GB version 1.1 - Firmware v2.84
   - No other devices from Victron connected
@@ -53,7 +53,7 @@ After that call the install.sh script.
 
 The following script should do everything for you:
 ```
-wget https://github.com/tonythesticks/dbus-shelly-em-smartmeter.git/archive/refs/heads/main.zip
+wget https://github.com/tonythesticks/dbus-shelly-em-smartmeter/archive/refs/heads/main.zip
 unzip main.zip "dbus-shelly-em-smartmeter-main/*" -d /data
 mv /data/dbus-shelly-em-smartmeter-main /data/dbus-shelly-em-smartmeter
 chmod a+x /data/dbus-shelly-em-smartmeter/install.sh
@@ -69,10 +69,12 @@ Within the project there is a file `/data/dbus-shelly-em-smartmeter/config.ini` 
 | ------------- | ------------- | ------------- |
 | DEFAULT  | AccessType | Fixed value 'OnPremise' |
 | DEFAULT  | SignOfLifeLog  | Time in minutes how often a status is added to the log-file `current.log` with log-level INFO |
-| DEFAULT  | Deviceinstance | Unique ID identifying the shelly 1pm in Venus OS |
+| DEFAULT  | Deviceinstance | Unique ID identifying the shelly EM in Venus OS |
 | DEFAULT  | CustomName | Name shown in Remote Console (e.g. name of pv inverter) |
 | DEFAULT  | Phase | Valid values L1, L2 or L3: represents the phase where pv inverter is feeding in |
-| ONPREMISE  | Host | IP or hostname of on-premise Shelly 3EM web-interface |
+| DEFAULT  | GridOrPV | Valid values are grid or pvinverter: represents the dbus service to send data to |
+| DEFAULT  | MeterNo | Valid values 0 or 1: represents the meter reading of the two inputs to use from the EM device |
+| ONPREMISE  | Host | IP or hostname of on-premise Shelly EM web-interface |
 | ONPREMISE  | Username | Username for htaccess login - leave blank if no username/password required |
 | ONPREMISE  | Password | Password for htaccess login - leave blank if no username/password required |
 
