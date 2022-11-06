@@ -25,7 +25,6 @@ class DbusShellyemService:
     config = self._getConfig()
     deviceinstance = int(config['DEFAULT']['Deviceinstance'])
     customname = config['DEFAULT']['CustomName']
-    GridOrPV = config['DEFAULT']['GridOrPV']
     MeterNo = config['DEFAULT']['MeterNo']
     self._dbusservice = VeDbusService("{}.http_{:02d}".format(servicename, deviceinstance))
     self._paths = paths
@@ -207,7 +206,7 @@ def main():
 
       #start our main-service
       pvac_output = DbusShellyemService(
-        servicename='com.victronenergy.' + GridOrPV, #grid or pvinverter
+        servicename='com.victronenergy.grid', #grid or pvinverter
         paths={
           '/Ac/Energy/Forward': {'initial': None, 'textformat': _kwh}, # energy bought from the grid
           '/Ac/Energy/Reverse': {'initial': None, 'textformat': _kwh}, # energy sold to the grid
