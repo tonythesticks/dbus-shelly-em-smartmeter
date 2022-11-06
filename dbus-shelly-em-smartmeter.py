@@ -188,7 +188,7 @@ class DbusShellyemService:
 def getServiceConfig():
     config = configparser.ConfigParser()
     config.read("%s/config.ini" % (os.path.dirname(os.path.realpath(__file__))))
-    GridOrpV = config['DEFAULT']['GridOrPV']
+    GridOrPV = config['DEFAULT']['GridOrPV']
     return GridOrPV
   
 
