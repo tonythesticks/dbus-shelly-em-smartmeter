@@ -48,8 +48,8 @@ Thats it 😄
 
 ## Install & Configuration
 ### Get the code
-Just grap a copy of the main branche and copy them to a folder under `/data/` e.g. `/data/dbus-shelly-em-pvinverter`.
-After that call the install.sh script.
+Just grap a copy of the main branch and copy them to a folder under `/data/` e.g. `/data/dbus-shelly-em-pvinverter-grid`.
+After that call the install.sh script. Create a separate copy for each instance (eg for both inputs of Shelly EM).
 
 The following script should do everything for you:
 ```
