@@ -94,7 +94,7 @@ class DbusShellyemService:
 
   def _getMeterNoConfig(self):
         config = self._getconfig()
-        MeterNo = config['DEFAULT']['GridOrPV']
+        MeterNo = config['DEFAULT']['MeterNo']
         return MeterNo
     
   def _getShellyStatusUrl(self):
@@ -139,17 +139,14 @@ class DbusShellyemService:
     try:
        #get data from Shelly em
        meter_data = self._getShellyData()
-        
-       config = self._getConfig()
-       MeterNo = config['DEFAULT']['MeterNo']
        
        #send data to DBus
        self._dbusservice['/Ac/L1/Voltage'] = meter_data['emeters'][MeterNo]['voltage']
-       current = meter_data['emeters'][0]['power'] / meter_data['emeters'][MeterNo]['voltage']
+       current = meter_data['emeters'][MeterNo]['power'] / meter_data['emeters'][MeterNo]['voltage']
        self._dbusservice['/Ac/L1/Current'] = current
        self._dbusservice['/Ac/Current'] = current
        self._dbusservice['/Ac/L1/Power'] = meter_data['emeters'][MeterNo]['power']
-       if meter_data['emeters'][0]['power'] != 0:
+       if meter_data['emeters'][MeterNo]['power'] != 0:
           self._dbusservice['/Ac/Power'] = self._dbusservice['/Ac/L1/Power']
        else:
           self._dbusservice['/Ac/L1/Voltage'] = 0
