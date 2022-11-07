@@ -141,7 +141,7 @@ class DbusShellyemService:
        meter_data = self._getShellyData()
         
        config = self._getConfig()
-       MeterNo = int(config['DEFAULT']['MeterNo'])
+       MeterNo = config['DEFAULT']['MeterNo']
        
        #send data to DBus
        self._dbusservice['/Ac/L1/Voltage'] = meter_data['emeters'][MeterNo]['voltage']
