@@ -55,11 +55,17 @@ The following script should do everything for you:
 ```
 wget https://github.com/tonythesticks/dbus-shelly-em-smartmeter/archive/refs/heads/main.zip
 unzip main.zip "dbus-shelly-em-smartmeter-main/*" -d /data
-mv /data/dbus-shelly-em-smartmeter-main /data/dbus-shelly-em-smartmeter
-chmod a+x /data/dbus-shelly-em-smartmeter/install.sh
-/data/dbus-shelly-em-smartmeter/install.sh
+mv /data/dbus-shelly-em-smartmeter-main /data/dbus-shelly-em-smartmeter-grid
+chmod a+x /data/dbus-shelly-em-smartmeter-grid/install.sh
+cp /data/dbus-shelly-em-smartmeter-grid /data/dbus-shelly-em-smartmeter-pv -r
+rm /data/dbus-shelly-em-smartmeter-pv/config.ini
+cp /data/dbus-shelly-em-smartmeter-pv/configpv.ini /data/dbus-shelly-em-smartmeter-pv/config.ini
+/data/dbus-shelly-em-smartmeter-grid/install.sh
+/data/dbus-shelly-em-smartmeter-pv/install.sh
 rm main.zip
 ```
+
+
 ⚠️ Check configuration after that - because service is already installed an running and with wrong connection data (host, username, pwd) you will spam the log-file
 
 ### Change config.ini
