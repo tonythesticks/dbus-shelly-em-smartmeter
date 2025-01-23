@@ -25,7 +25,7 @@ class DbusShellyemService:
     config = self._getConfig()
     deviceinstance = int(config['DEFAULT']['Deviceinstance'])
     customname = config['DEFAULT']['CustomName']
-    self._dbusservice = VeDbusService("{}.http_{:02d}".format(servicename, deviceinstance))
+    self._dbusservice = VeDbusService("{}.http_{:02d}".format(servicename, deviceinstance), register=False)
     self._paths = paths
 
     logging.debug("%s /DeviceInstance = %d" % (servicename, deviceinstance))
@@ -58,6 +58,8 @@ class DbusShellyemService:
       self._dbusservice.add_path(
         path, settings['initial'], gettextcallback=settings['textformat'], writeable=True, onchangecallback=self._handlechangedvalue)
 
+    self._dbusservice.register()
+    
     # last update
     self._lastUpdate = 0
 
