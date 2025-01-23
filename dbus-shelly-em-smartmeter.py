@@ -59,7 +59,7 @@ class DbusShellyemService:
         path, settings['initial'], gettextcallback=settings['textformat'], writeable=True, onchangecallback=self._handlechangedvalue)
 
     self._dbusservice.register()
-    
+
     # last update
     self._lastUpdate = 0
 
@@ -98,7 +98,7 @@ class DbusShellyemService:
         config = self._getconfig()
         MeterNo = config['DEFAULT']['GridOrPV']
         return MeterNo
-
+    
   def _getShellyStatusUrl(self):
     config = self._getConfig()
     accessType = config['DEFAULT']['AccessType']
@@ -111,24 +111,22 @@ class DbusShellyemService:
 
     return URL
 
-
   def _getShellyData(self):
     URL = self._getShellyStatusUrl()
-    meter_r = requests.get(url = URL)
-
-    # check for response
-    if not meter_r:
-        raise ConnectionError("No response from Shelly EM - %s" % (URL))
-
-    meter_data = meter_r.json()
-
-    # check for Json
-    if not meter_data:
-        raise ValueError("Converting response to JSON failed")
-
-
-    return meter_data
-
+    try:
+        meter_r = requests.get(url=URL, timeout=10)  # Add a timeout for better control
+        meter_r.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
+        meter_data = meter_r.json()
+        return meter_data
+    except requests.exceptions.ConnectionError:
+        logging.error("Connection error: Unable to reach Shelly EM at %s", URL)
+    except requests.exceptions.Timeout:
+        logging.error("Timeout error: Shelly EM at %s took too long to respond", URL)
+    except requests.exceptions.RequestException as e:
+        logging.error("HTTP request error: %s", str(e))
+    except ValueError as e:
+        logging.error("Invalid JSON received from Shelly EM: %s", str(e))
+    return None  # Return None if any exception occurs
 
   def _signOfLife(self):
     #logging.info("--- Start: sign of life ---")
@@ -139,48 +137,69 @@ class DbusShellyemService:
 
   def _update(self):
     try:
-       #get data from Shelly em
-       meter_data = self._getShellyData()
+        # Fetch Shelly EM data
+        logging.debug("Fetching data from Shelly EM...")
+        meter_data = self._getShellyData()
 
-       config = self._getConfig()
-       MeterNo = int(config['DEFAULT']['MeterNo'])
+        # Check if Shelly EM data is available
+        if not meter_data or 'emeters' not in meter_data:
+            logging.warning("No data received from Shelly EM. Skipping this update cycle.")
+            return True  # Skip the update if no data is available
 
-       #send data to DBus
-       self._dbusservice['/Ac/L1/Voltage'] = meter_data['emeters'][MeterNo]['voltage']
-       current = meter_data['emeters'][MeterNo]['power'] / meter_data['emeters'][MeterNo]['voltage']
-       self._dbusservice['/Ac/L1/Current'] = current
-       self._dbusservice['/Ac/Current'] = current
-       self._dbusservice['/Ac/L1/Power'] = meter_data['emeters'][MeterNo]['power']
-       if meter_data['emeters'][MeterNo]['power'] != 0:
-          self._dbusservice['/Ac/Power'] = self._dbusservice['/Ac/L1/Power']
-       else:
-          self._dbusservice['/Ac/L1/Voltage'] = 0
-          self._dbusservice['/Ac/L1/Current'] = 0
-          self._dbusservice['/Ac/L1/Power'] = 0
-          self._dbusservice['/Ac/L1/Energy/Forward'] = 0
-       self._dbusservice['/Ac/L1/Energy/Forward'] = (meter_data['emeters'][MeterNo]['total']/1000)
-       self._dbusservice['/Ac/L1/Energy/Reverse'] = (meter_data['emeters'][MeterNo]['total_returned']/1000)
-       self._dbusservice['/Ac/Energy/Forward'] = self._dbusservice['/Ac/L1/Energy/Forward']
-       self._dbusservice['/Ac/Energy/Reverse'] = self._dbusservice['/Ac/L1/Energy/Reverse']
+        logging.debug("Shelly EM data fetched successfully.")
 
-       #logging
-       logging.debug("House Consumption (/Ac/Power): %s" % (self._dbusservice['/Ac/Power']))
-       logging.debug("House Forward (/Ac/Energy/Forward): %s" % (self._dbusservice['/Ac/Energy/Forward']))
-       logging.debug("House Reverse (/Ac/Energy/Revers): %s" % (self._dbusservice['/Ac/Energy/Reverse']))
-       logging.debug("---");
+        # Get configuration
+        logging.debug("Fetching configuration...")
+        config = self._getConfig()
+        MeterNo = int(config['DEFAULT']['MeterNo'])
+        logging.debug(f"MeterNo: {MeterNo}")
 
-       # increment UpdateIndex - to show that new data is available
-       index = self._dbusservice['/UpdateIndex'] + 1  # increment index
-       if index > 255:   # maximum value of the index
-         index = 0       # overflow from 255 to 0
-       self._dbusservice['/UpdateIndex'] = index
+        # Extract values from meter data
+        voltage = meter_data['emeters'][MeterNo]['voltage']
+        power = meter_data['emeters'][MeterNo]['power']
+        total_energy = meter_data['emeters'][MeterNo]['total'] / 1000
+        total_returned = meter_data['emeters'][MeterNo]['total_returned'] / 1000
 
-       #update lastupdate vars
-       self._lastUpdate = time.time()
+        # Calculate current (handle division by zero)
+        if voltage == 0:
+            logging.warning("Voltage is 0, setting current to 0 to avoid division by zero.")
+            current = 0
+        else:
+            current = power / voltage
+
+        # Log the extracted values
+        logging.debug(f"Voltage: {voltage}, Power: {power}, Current: {current}")
+        logging.debug(f"Total Energy: {total_energy}, Total Returned: {total_returned}")
+
+        # Update DBus service
+        self._dbusservice['/Ac/L1/Voltage'] = voltage
+        self._dbusservice['/Ac/L1/Current'] = current
+        self._dbusservice['/Ac/Current'] = current
+        self._dbusservice['/Ac/L1/Power'] = power
+        self._dbusservice['/Ac/Power'] = power if power != 0 else 0
+        self._dbusservice['/Ac/L1/Energy/Forward'] = total_energy
+        self._dbusservice['/Ac/L1/Energy/Reverse'] = total_returned
+        self._dbusservice['/Ac/Energy/Forward'] = total_energy
+        self._dbusservice['/Ac/Energy/Reverse'] = total_returned
+
+        # Update the UpdateIndex and lastUpdate
+        index = self._dbusservice['/UpdateIndex'] + 1
+        self._dbusservice['/UpdateIndex'] = index if index <= 255 else 0
+        self._lastUpdate = time.time()
+
+        # Log data to verify DBus service updates
+        logging.debug(f"UpdateIndex: {self._dbusservice['/UpdateIndex']}")
+        logging.debug("House Consumption (/Ac/Power): %s", self._dbusservice['/Ac/Power'])
+        logging.debug("House Forward (/Ac/Energy/Forward): %s", self._dbusservice['/Ac/Energy/Forward'])
+        logging.debug("House Reverse (/Ac/Energy/Reverse): %s", self._dbusservice['/Ac/Energy/Reverse'])
+
+    except KeyError as e:
+        logging.error("Key error: Missing expected data in Shelly EM response or config: %s", e)
+    except requests.exceptions.RequestException as e:
+        logging.error("Network error during Shelly EM data fetch: %s", e)
     except Exception as e:
-       logging.critical('Error at %s', '_update', exc_info=e)
+        logging.critical("Unhandled error in _update: %s", e, exc_info=True)
 
-    # return true, otherwise add_timeout will be removed from GObject - see docs http://library.isr.ist.utl.pt/docs/pygtk2reference/gobject-functions.html#function-gobject--timeout-add
     return True
 
   def _handlechangedvalue(self, path, value):
@@ -192,7 +211,7 @@ def getServiceConfig():
     config.read("%s/config.ini" % (os.path.dirname(os.path.realpath(__file__))))
     GridOrPV = config['DEFAULT']['GridOrPV']
     return GridOrPV
-
+  
 
 def main():
   #configure logging
